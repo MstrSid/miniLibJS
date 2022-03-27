@@ -45,64 +45,101 @@ var Customizator = /*#__PURE__*/function () {
 
     this.btnBlock = document.createElement('div');
     this.colorPicker = document.createElement('input');
+    this.clear = document.createElement('input');
     this.btnBlock.addEventListener('click', function (e) {
       return _this.onScaleChange(e);
     });
     this.colorPicker.addEventListener('input', function (e) {
       return _this.onColorChange(e);
     });
+    this.scale = localStorage.getItem('scale') || 1;
+    this.color = localStorage.getItem('color') || '#ffffff';
+    this.clear.addEventListener('click', function () {
+      return _this.reset();
+    });
   }
 
   _createClass(Customizator, [{
     key: "onScaleChange",
     value: function onScaleChange(e) {
-      var scale;
+      var _this2 = this;
+
       var body = document.querySelector('body');
 
-      if (e.target.value) {
-        scale = +e.target.value.replace(/x/g, '');
+      if (e) {
+        this.scale = +e.target.value.replace(/x/g, '');
       }
 
-      function recursy(element) {
+      var recursy = function recursy(element) {
         element.childNodes.forEach(function (node) {
           if (node.nodeName === '#text' && node.nodeValue.replace(/\s+/g, '').length > 0) {
             if (!node.parentNode.getAttribute('data-fsz')) {
               var fsz = window.getComputedStyle(node.parentNode, null).fontSize;
               node.parentNode.setAttribute('data-fsz', +fsz.replace(/px/g, ''));
-              node.parentNode.style.fontSize = node.parentNode.getAttribute('data-fsz') * scale + 'px';
+              node.parentNode.style.fontSize = node.parentNode.getAttribute('data-fsz') * _this2.scale + 'px';
             } else {
-              node.parentNode.style.fontSize = node.parentNode.getAttribute('data-fsz') * scale + 'px';
+              node.parentNode.style.fontSize = node.parentNode.getAttribute('data-fsz') * _this2.scale + 'px';
             }
           } else {
             recursy(node);
           }
         });
-      }
+      };
 
       recursy(body);
+      localStorage.setItem('scale', this.scale);
     }
   }, {
     key: "onColorChange",
     value: function onColorChange(e) {
       var body = document.querySelector('body');
       body.style.backgroundColor = e.target.value;
-      console.log(e.target.valueOf());
+      localStorage.setItem('color', e.target.value);
+    }
+  }, {
+    key: "setBgColor",
+    value: function setBgColor() {
+      var body = document.querySelector('body');
+      body.style.backgroundColor = this.color;
+      this.colorPicker.value = this.color;
+    }
+  }, {
+    key: "reset",
+    value: function reset() {
+      localStorage.clear();
+      this.scale = 1;
+      this.color = '#ffffff';
+      this.setBgColor();
+      this.onScaleChange();
+    }
+  }, {
+    key: "injectStyle",
+    value: function injectStyle() {
+      var style = document.createElement('style');
+      style.innerHTML = "\n\t\t\t.panel {\n\t\t\t\tdisplay: flex;\n\t\t\t\tjustify-content: space-around;\n\t\t\t\talign-items: center;\n\t\t\t\tposition: fixed;\n\t\t\t\ttop: 10px;\n\t\t\t\tright: 0;\n\t\t\t\tborder: 1px solid rgba(0,0,0, .2);\n\t\t\t\tbox-shadow: 0 0 20px rgba(0,0,0, .5);\n\t\t\t\twidth: 300px;\n\t\t\t\theight: 60px;\n\t\t\t\tbackground-color: #fff;\n\t\t\t}\n\t\t\n\t\t\t.scale {\n\t\t\t\tdisplay: flex;\n\t\t\t\tjustify-content: space-around;\n\t\t\t\talign-items: center;\n\t\t\t\twidth: 100px;\n\t\t\t\theight: 40px;\n\t\t\t}\n\t\t\t\n\t\t\t.scale_btn {\n\t\t\t\tdisplay: block;\n\t\t\t\twidth: 40px;\n\t\t\t\theight: 40px;\n\t\t\t\tborder: 1px solid rgba(0,0,0, .2);\n\t\t\t\tborder-radius: 4px;\n\t\t\t\tfont-size: 18px;\n\t\t\t\tcursor: pointer;\n\t\t\t}\n\t\t\n\t\t\t.color {\n\t\t\t\twidth: 40px;\n\t\t\t\theight: 40px;\n\t\t\t\tcursor: pointer;\n\t\t\t\tborder: 1px solid rgba(0,0,0, .2);\n\t\t\t\tborder-radius: 4px;\n\t\t\t}\n\t\t\t\n\t\t\t.clear{\n\t\t\t\tfont-size: 28px;\n\t\t\t\tcursor: pointer;\n\t\t\t\twidth: 40px;\n\t\t\t\theight: 40px;\n\t\t\t\tborder: 1px solid rgba(0,0,0, .2);\n\t\t\t\tborder-radius: 4px;\n\t\t\t\ttext-align: center;\n\t\t\t}\n\t\t";
+      document.querySelector('head').appendChild(style);
     }
   }, {
     key: "render",
     value: function render() {
+      this.injectStyle();
+      this.setBgColor();
+      this.onScaleChange();
       var scaleInputSmall = document.createElement('input'),
           scaleInputMedium = document.createElement('input'),
           panel = document.createElement('div');
-      panel.append(this.btnBlock, this.colorPicker);
+      panel.append(this.btnBlock, this.colorPicker, this.clear);
       scaleInputSmall.classList.add('scale_btn');
       scaleInputMedium.classList.add('scale_btn');
       this.btnBlock.classList.add('scale');
       this.colorPicker.classList.add('color');
+      this.clear.classList.add('clear');
       scaleInputSmall.setAttribute('type', 'button');
       scaleInputSmall.setAttribute('value', '1x');
       scaleInputMedium.setAttribute('type', 'button');
       scaleInputMedium.setAttribute('value', '1.5x');
+      this.clear.setAttribute('type', 'button');
+      this.clear.setAttribute('value', 'x');
       this.colorPicker.setAttribute('type', 'color');
       this.colorPicker.setAttribute('value', '#ffffff');
       this.btnBlock.append(scaleInputSmall, scaleInputMedium);
